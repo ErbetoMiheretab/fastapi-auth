@@ -6,6 +6,10 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "postgresql+asyncpg://"
 
+    # Redis
+    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_PASSWORD: str | None = None
+
     #JWT
 
     SECRET_KEY: str
