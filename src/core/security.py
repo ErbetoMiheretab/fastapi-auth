@@ -1,11 +1,13 @@
-from datetime import datetime, timedelta, timezone
-from jose import jwt, JWTError
-from passlib.context import CryptContext
-from core.config import settings
 import hashlib
-import secrets
-import redis.asyncio as redis
 import json
+import secrets
+from datetime import datetime, timedelta
+
+import redis.asyncio as redis
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
+from core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -62,7 +64,7 @@ def decode_access_token(token: str) -> dict:
             raise JWTError("Invalid token type")
         return payload
     except JWTError as e:
-        raise JWTError(f"Token validation failed: {str(e)}")
+        raise JWTError(f"Token validation failed: {e!s}")
 
 
 # Redis Token Management

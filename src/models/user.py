@@ -1,8 +1,9 @@
-from sqlachemy import Column, Integer, String, Boolean, DateTime, Enum
-from sqlalchemy.orm import relationship
-from core.db import Base
-import enum
 import datetime
+import enum
+
+from sqlachemy import Boolean, Column, DateTime, Enum, Integer, String
+
+from core.db import Base
 
 
 class UserRole(str, enum.Enum):
@@ -18,4 +19,4 @@ class User(Base):
     full_name = Column(String, nullable=True)
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.datetime.now)

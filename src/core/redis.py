@@ -1,9 +1,9 @@
-import redis.asyncio as redis
-
-from redis.asyncio.connection import ConnectionPool
-from core.config import settings
 import logging
 
+import redis.asyncio as redis
+from redis.asyncio.connection import ConnectionPool
+
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 
