@@ -143,7 +143,6 @@ async def revoke_refresh_token(redis_client: redis.Redis, token: str) -> bool:
     token_data["is_revoked"] = True
 
     # Update the token with revoked status, keep the existing TTL
-
     ttl = await redis_client.ttl(token_key)
     if ttl > 0:
         await redis_client.setex(token_key, ttl, json.dumps(token_data))
@@ -151,3 +150,12 @@ async def revoke_refresh_token(redis_client: redis.Redis, token: str) -> bool:
         await redis_client.delete(token_key)
 
     return True
+
+# --- Session Cookie Helpers ---
+from  fastapi import Response
+
+
+def set_session_cookie(response: Response, user_id: int):
+    """Set a secure session cookie with a short-lived JWT."""
+
+    token = create_access_token(subject=user_id, expires_delta=timedelta(seconds=settings.SESSION_COOKIE_MAX_AGE_SECONDS))
