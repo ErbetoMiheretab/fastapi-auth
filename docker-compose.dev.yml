@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   auth-db:
     image: postgres:16
@@ -7,6 +5,8 @@ services:
       POSTGRES_DB: auth_db
       POSTGRES_USER: auth_user
       POSTGRES_PASSWORD: auth_pass
+    ports:
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -18,6 +18,8 @@ services:
   auth-redis:
     image: redis:7-alpine
     command: redis-server --requirepass ${REDIS_PASSWORD:-redispass} --appendonly yes
+    ports:
+      - "6380:6379"
     volumes:
       - redisdata:/data
     healthcheck:
