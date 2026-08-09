@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-from core.config import settings
+from src.core.config import settings
 
 # create async engine
 
@@ -37,12 +37,14 @@ class Base(DeclarativeBase):
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     FastAPI dependency that provides an async database session.
-    Automatically closes the session when the request is done.
+
+    Commits are the responsibility of each route handler so that they can
+    control exactly when data is flushed.  This dependency only rolls back on
+    unhandled exceptions and always closes the session on exit.
     """
     async with async_session_factory() as session:
         try:
             yield session
-            await session.commit()
         except Exception:
             await session.rollback()
             raise

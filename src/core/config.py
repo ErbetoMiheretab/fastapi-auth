@@ -2,12 +2,14 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    ENVIRONMENT: str = "development"
+
     #Database
 
     DATABASE_URL: str = "postgresql+asyncpg://"
 
     # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_URL: str = "redis://localhost:6380/0"
     REDIS_PASSWORD: str | None = None
 
     #JWT
@@ -23,8 +25,11 @@ class Settings(BaseSettings):
     
     # Security
     BCRYPT_ROUNDS: int = 12
+    TRUSTED_PROXY_IPS: str = ""
 
-    class Config:
-        env_file = ".env"
+    model_config = {
+        "env_file": ".env",
+        "extra": "ignore"
+    }
 
 settings =Settings()
