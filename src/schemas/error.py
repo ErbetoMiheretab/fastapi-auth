@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -14,7 +16,7 @@ class HTTPValidationError(BaseModel):
 class ErrorDetail(BaseModel):
     code: str
     message: str
-    details: dict[str, any] | None = None
+    details: dict[str, Any] | None = None
 
 
 class APIError(BaseModel):
