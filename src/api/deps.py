@@ -2,13 +2,12 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.db import get_db
-from core.security import decode_access_token
-from models.user import User, UserRole
+from src.core.db import get_db
+from src.core.security import decode_access_token
+from src.models.user import User, UserRole
 
 bearer_scheme = HTTPBearer(auto_error=False)
 

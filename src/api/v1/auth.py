@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.deps import get_current_user, get_db
-from core.redis import get_redis
-from core.security import (
+from src.api.deps import get_current_user, get_db
+from src.core.redis import get_redis
+from src.core.security import (
     clear_session_cookie,
     create_access_token,
     create_refresh_token,
@@ -19,8 +19,8 @@ from core.security import (
     validate_refresh_token,
     verify_password,
 )
-from models.user import User
-from schemas.auth import RefreshTokenRequest, TokenResponse, UserCreate, UserLogin
+from src.models.user import User
+from src.schemas.auth import RefreshTokenRequest, TokenResponse, UserCreate, UserLogin
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -63,8 +63,8 @@ async def register(
     refresh_token_raw = create_refresh_token()
     await store_refresh_token(redis_client, user.id, refresh_token_raw)
 
-    # Set session cookie for browser clients
-    if "Mozilla" in request.headers.get("user-agent", ""):
+    # Set session cookie only when the browser client explicitly opts in.
+    if request.headers.get("X-Client-Type") == "browser":
         set_session_cookie(response, user.id)
 
     return TokenResponse(
@@ -102,8 +102,8 @@ async def login(
 
     await store_refresh_token(redis_client, user.id, refresh_token_raw)
 
-     # Set session cookie for browser clients
-    if "Mozilla" in request.headers.get("user-agent", ""):
+    # Set session cookie only when the browser client explicitly opts in.
+    if request.headers.get("X-Client-Type") == "browser":
         set_session_cookie(response, user.id)
     
     return TokenResponse(
@@ -138,8 +138,8 @@ async def refresh_token(
     access_token = create_access_token(subject=user_id)
 
 
-    # Set session cookie for browser clients
-    if "Mozilla" in request.headers.get("user-agent", ""):
+    # Set session cookie only when the browser client explicitly opts in.
+    if request.headers.get("X-Client-Type") == "browser":
         set_session_cookie(response, user_id)
 
 

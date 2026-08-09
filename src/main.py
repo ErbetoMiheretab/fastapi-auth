@@ -5,10 +5,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.router import api_router
-from core.config import settings
-from core.db import Base, engine
-from core.redis import check_redis_connection
-from middleware import (
+from src.core.config import settings
+from src.core.db import Base, engine
+from src.core.redis import check_redis_connection
+from src.middleware import (
     AuthRateLimitMiddleware,
     RateLimitMiddleware,
     RequestLoggingMiddleware,
@@ -43,8 +43,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Auth Service",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/docs",#if settings.ENVIRONMENT != "production" else None,
+    redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
+    openapi_url="/openapi.json" if settings.ENVIRONMENT != "production" else None,
     lifespan=lifespan,
 )
 

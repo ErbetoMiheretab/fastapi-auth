@@ -2,7 +2,7 @@ from fastapi import Query
 from pydantic import BaseModel
 
 
-class paginationParams:
+class PaginationParams:
     """Pagination parameters for dependency injection."""
 
     def __init__(
