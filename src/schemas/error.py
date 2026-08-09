@@ -1,14 +1,14 @@
 from pydantic import BaseModel
 
 
-class ValdiationError(BaseModel):
+class ValidationError(BaseModel):
     loc: list[str]
     msg: str
     type: str
 
 
 class HTTPValidationError(BaseModel):
-    detail: list[ValdiationError]
+    detail: list[ValidationError]
 
 
 class ErrorDetail(BaseModel):

@@ -1,7 +1,7 @@
 import datetime
 import enum
 
-from sqlachemy import Boolean, Column, DateTime, Enum, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String
 
 from core.db import Base
 
@@ -19,4 +19,4 @@ class User(Base):
     full_name = Column(String, nullable=True)
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.datetime.now)
+    created_at = Column(DateTime(timezone=True), default=datetime.datetime.utcnow)

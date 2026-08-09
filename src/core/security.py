@@ -1,7 +1,7 @@
 import hashlib
 import json
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import redis.asyncio as redis
 from jose import JWTError, jwt
@@ -27,7 +27,7 @@ def create_access_token(
     extra_claims: dict | None = None,
     expires_delta: timedelta | None = None,
 ) -> str:
-    expire = datetime.now(datetime.UTC) + (
+    expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
 
@@ -35,7 +35,7 @@ def create_access_token(
         "exp": expire,
         "sub": str(subject),
         "type": "access",
-        "iat": datetime.now(datetime.UTC),
+        "iat": datetime.now(timezone.utc),
     }
 
     if extra_claims:
@@ -82,7 +82,7 @@ async def store_refresh_token(
 
     token_data = {
         "user_id": user_id,
-        "created_at": datetime.now(datetime.UTC).isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
         "is_revoked": False,
     }
 
@@ -96,7 +96,7 @@ async def store_refresh_token(
 
     # Also maintain a set of users active refresh tokens for management
 
-    await redis_client.sadd(f"user_tokens: {user_id}, token_hash")
+    await redis_client.sadd(f"user_tokens:{user_id}, token_hash")
 
     # Set the same TTL on the user tokens set
     await redis_client.expire(
@@ -166,7 +166,7 @@ async def revoke_all_user_tokens(redis_client:redis.Redis, user_id:int) ->None:
     await pipe.execute()
 
 
-async def rotate_refresh_token(redis_client:redis.Redis, old_token, str, user_id:int) -> str | None:
+async def rotate_refresh_token(redis_client:redis.Redis, old_token:str, user_id:int) -> str | None:
     """
     Rotate refresh token: revoke old one and create new one.
     Returns new token, or None if old token is invalid.
