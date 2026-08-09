@@ -1,11 +1,9 @@
-from fastapi import Request, HTTPException, status
+import logging
+import time
+
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-from core.redis import get_redis
-import redis.asyncio as redis
-import time
-import logging
-
 
 logger = logging.getLogger(__name__)
 
