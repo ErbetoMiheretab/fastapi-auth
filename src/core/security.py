@@ -151,11 +151,58 @@ async def revoke_refresh_token(redis_client: redis.Redis, token: str) -> bool:
 
     return True
 
+async def revoke_all_user_tokens(redis_client:redis.Redis, user_id:int) ->None:
+    """Revoke all refresh tokens for a user(e.g on pwd change)"""
+    #Get all token hashes for the user
+
+    token_hashes = await redis_client.smembers(f"user_tokens:{user_id}")
+
+    #Delete all individual tokens
+
+    pipe = redis_client.pipeline()
+    for token_hash in token_hashes:
+        pipe.delete(f"refresh_token:{token_hash}")
+    pipe.delete(f"user_tokens:{user_id}")
+    await pipe.execute()
+
+
+async def rotate_refresh_token(redis_client:redis.Redis, old_token, str, user_id:int) -> str | None:
+    """
+    Rotate refresh token: revoke old one and create new one.
+    Returns new token, or None if old token is invalid.
+    """
+
+    if not await validate_refresh_token(redis_client, old_token):
+        return None
+
+    #Revoke old token
+
+    await revoke_refresh_token(redis_client, old_token)
+
+    #Create and store new token
+    new_token = create_refresh_token()
+    await store_refresh_token(redis_client, user_id, new_token)
+
+    return new_token
+
+
 # --- Session Cookie Helpers ---
-from  fastapi import Response
+from fastapi import Response
 
 
 def set_session_cookie(response: Response, user_id: int):
     """Set a secure session cookie with a short-lived JWT."""
 
     token = create_access_token(subject=user_id, expires_delta=timedelta(seconds=settings.SESSION_COOKIE_MAX_AGE_SECONDS))
+
+    response.set_cookie(
+        key="session", value=token,max_age=settings.SESSION_COOKIE_MAX_AGE_SECONDS, httponly=True, secure=False, #For the time being, 
+        samesite='lax', path='/'
+    )
+
+
+
+
+def clear_session_cookie(response: Response):
+    """Clear the session cookie"""
+    response.delete_cookie(key="session", path="/")
