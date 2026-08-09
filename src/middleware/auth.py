@@ -16,6 +16,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp):
         super().__init__(app)
 
+    # Paths that serve Swagger UI / ReDoc — need relaxed CSP for CDN assets + inline scripts
+    _DOCS_PATHS = {"/docs", "/redoc", "/openapi.json"}
+
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
         # Security headers
@@ -25,7 +28,20 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # response.headers["Strict-Transport-Security"] = (
         #     "max-age=31536000; includeSubDomains"
         # )
-        response.headers["Content-Security-Policy"] = "default-src 'self'"
+
+        # Swagger UI / ReDoc load JS + CSS from cdn.jsdelivr.net and use inline
+        # scripts, so we must allow those sources on the docs paths.  All other
+        # routes keep the strict 'self'-only policy.
+        if request.url.path in self._DOCS_PATHS:
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "img-src 'self' data: https://fastapi.tiangolo.com;"
+            )
+        else:
+            response.headers["Content-Security-Policy"] = "default-src 'self'"
+
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = (
             "geolocation=(), microphone=(), camera=()"

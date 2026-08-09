@@ -1,13 +1,13 @@
 import hashlib
 import json
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import redis.asyncio as redis
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-from core.config import settings
+from src.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -27,7 +27,7 @@ def create_access_token(
     extra_claims: dict | None = None,
     expires_delta: timedelta | None = None,
 ) -> str:
-    expire = datetime.now(timezone.utc) + (
+    expire = datetime.now(UTC) + (
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
 
@@ -35,7 +35,7 @@ def create_access_token(
         "exp": expire,
         "sub": str(subject),
         "type": "access",
-        "iat": datetime.now(timezone.utc),
+        "iat": datetime.now(UTC),
     }
 
     if extra_claims:
@@ -82,7 +82,7 @@ async def store_refresh_token(
 
     token_data = {
         "user_id": user_id,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "is_revoked": False,
     }
 
@@ -96,7 +96,7 @@ async def store_refresh_token(
 
     # Also maintain a set of users active refresh tokens for management
 
-    await redis_client.sadd(f"user_tokens:{user_id}, token_hash")
+    await redis_client.sadd(f"user_tokens:{user_id}", token_hash)
 
     # Set the same TTL on the user tokens set
     await redis_client.expire(
@@ -196,7 +196,7 @@ def set_session_cookie(response: Response, user_id: int):
     token = create_access_token(subject=user_id, expires_delta=timedelta(seconds=settings.SESSION_COOKIE_MAX_AGE_SECONDS))
 
     response.set_cookie(
-        key="session", value=token,max_age=settings.SESSION_COOKIE_MAX_AGE_SECONDS, httponly=True, secure=False, #For the time being, 
+        key="session", value=token,max_age=settings.SESSION_COOKIE_MAX_AGE_SECONDS, httponly=True, secure=True,
         samesite='lax', path='/'
     )
 
